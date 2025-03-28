@@ -4,7 +4,7 @@ resource "azurerm_resource_group" "grid_terraform" {
 }
 
 resource "azurerm_virtual_network" "grid_vnet" {
-  name                = "grid-vnet-1242134§"
+  name                = "grid-vnet-1242134"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.grid_terraform.location
   resource_group_name = azurerm_resource_group.grid_terraform.name
