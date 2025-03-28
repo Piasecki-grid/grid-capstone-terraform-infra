@@ -1,41 +1,62 @@
-resource "azurerm_resource_group" "grid_terraform" {
-  name     = "example-resources-afsf"
-  location = "West Europe"
-}
-
-resource "azurerm_virtual_network" "grid_vnet" {
-  name                = "grid-vnet-1242134"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.grid_terraform.location
-  resource_group_name = azurerm_resource_group.grid_terraform.name
-}
-
-resource "azurerm_subnet" "subnet_1" {
-  name                 = "internal123123"
-  resource_group_name  = azurerm_resource_group.grid_terraform.name
-  virtual_network_name = azurerm_virtual_network.grid_vnet.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-
-resource "azurerm_network_interface" "example" {
-  name                = "example-nic-123131"
-  location            = azurerm_resource_group.grid_terraform.location
-  resource_group_name = azurerm_resource_group.grid_terraform.name
-
-  ip_configuration {
-    name                          = "example-nic-123131"
-    subnet_id                     = azurerm_subnet.subnet_1.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.vm_public_ip.id
+# providers.tf
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+  
+  backend "azurerm" {
+    resource_group_name  = "tfstate-rg"
+    storage_account_name = "tfstatestorageaccount"
+    container_name       = "tfstate"
+    key                  = "terraform.tfstate"
   }
 }
 
-resource "azurerm_public_ip" "vm_public_ip" {
-  name                = "vm-public-ip-12312"
-  resource_group_name = azurerm_resource_group.grid_terraform.name
-  location            = azurerm_resource_group.grid_terraform.location
-  allocation_method   = "Static"
+provider "azurerm" {
+  features {}
 }
 
+# variables.tf
+variable "location" {
+  description = "Azure region"
+  type        = string
+  default     = "eastus"
+}
 
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  default     = "dev"
+}
+
+variable "resource_group_name" {
+  description = "Name of the resource group"
+  type        = string
+  default     = "my-terraform-rg"
+}
+
+# main.tf
+resource "azurerm_resource_group" "example" {
+  name     = "${var.resource_group_name}-${var.environment}"
+  location = var.location
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "mystorageaccount${var.environment}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+# outputs.tf
+output "resource_group_name" {
+  value = azurerm_resource_group.example.name
+}
+
+output "storage_account_name" {
+  value = azurerm_storage_account.example.name
+}
