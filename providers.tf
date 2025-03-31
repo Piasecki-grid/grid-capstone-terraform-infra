@@ -10,6 +10,9 @@ provider "azurerm" {
 #     cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.this.kube_config.0.cluster_ca_certificate)
 #   }
 # }
+provider "azapi" {
+  use_msi = false
+}
 
 terraform {
   required_providers {
