@@ -13,3 +13,4 @@ resource "azurerm_subnet" "subnet2" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = ["10.0.32.0/19"]
 }
+
